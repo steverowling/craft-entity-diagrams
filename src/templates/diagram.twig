@@ -131,7 +131,7 @@
                 let el = document.createElement('a');
                 el.setAttribute('href', 'data:text/plain;charset=utf-8,' +
                     encodeURIComponent(SVG));
-                el.setAttribute('download', SVG.title);
+                el.setAttribute('download', SVG.querySelector('title').innerText + '.svg');
 
                 el.style.display = 'none';
                 document.body.appendChild(el);
