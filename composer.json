@@ -1,0 +1,41 @@
+{
+    "name": "springworks/entity-diagrams",
+    "description": "Generate entity diagrams that show how the different parts of your Craft site relate to each other",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "entity diagrams"
+    ],
+    "support": {
+        "docs": "https://github.com/steverowling/entity-diagrams/blob/master/README.md",
+        "issues": "https://github.com/steverowling/entity-diagrams/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Steve Rowling",
+            "homepage": "https://springworks.co.uk"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "springworks\\entitydiagrams\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Entity Diagrams",
+        "handle": "entity-diagrams",
+        "developer": "Steve Rowling",
+        "developerUrl": "https://springworks.co.uk",
+        "documentationUrl": "https://github.com/steverowling/entity-diagrams/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/steverowling/entity-diagrams/master/CHANGELOG.md",
+        "class": "springworks\\entitydiagrams\\EntityDiagrams"
+    }
+}

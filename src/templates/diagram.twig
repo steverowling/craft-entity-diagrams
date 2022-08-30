@@ -1,0 +1,148 @@
+{% apply spaceless %}
+    {%- import "_includes/forms" as forms -%}
+    {%- do view.registerCssFile(view.getAssetManager().getPublishedUrl('@vendor/craftcms/cms/src/web/assets/cp/dist/css/cp.css')) -%}
+    {% set fileSettings = craft.app.config.getConfigFromFile('developer-documentation') %}
+    {% set settings = craft.entityDiagrams.getSettings() %}
+    {% set dotOptions = settings.dotOptions %}
+    {% set config = settings|filter((v, k) => k != 'dotOptions') %}
+    {% set params = craft.app.request.queryParams() %}
+    {% if params and (params['docGroup'] is defined) and (fileSettings['docGroups'][params['docGroup']] is defined) %}
+        {% set config = fileSettings['docGroups'][params['docGroup']] %}
+        {% set dotOptions = dotOptions|merge({
+            title: params['docGroup']
+        }) %}
+    {% endif %}
+    {% if params and (params['options'] is defined) %}
+        {% set config = config|merge({
+            options: params['options']
+        }) %}
+    {% endif %}
+    {% if params %}
+        {% for element in ['sections','categories','globals','userGroups','tags','volumes'] %}
+            {% if params[element] == '*' %}
+                {% set config = config|merge({
+                    (element): '*'
+                }) %}
+            {% else %}
+                {% set config = config|merge({
+                    (element): []
+                }) %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endapply %}
+<html lang="en">
+<head>
+    <title>Diagram</title>
+</head>
+<body class="ltr" style="background-color: #ffffff;">
+
+<p><strong>Layout Options</strong></p>
+
+<div class="flex flex-nowrap" style="display: flex; justify-content: flex-start; align-items: flex-end; margin-bottom: 2em;">
+    {% set fieldOptions = [
+        {
+            label: 'dot',
+            value: 'dot',
+        },
+        {
+            label: 'fdp',
+            value: 'fdp',
+        },
+        {
+            label: 'circo',
+            value: 'circo',
+        },
+        {
+            label: 'neato',
+            value: 'neato',
+        },
+        {
+            label: 'osage',
+            value: 'osage',
+        },
+        {
+            label: 'patchwork',
+            value: 'patchwork',
+        },
+        {
+            label: 'twopi',
+            value: 'twopi',
+        },
+    ] %}
+
+    {{ forms.selectField({
+        handle:'engine',
+        name:'engine',
+        id: 'engine',
+        label:'Layout Engine',
+        value: '',
+        options: fieldOptions,
+    }) }}
+
+    <button type="button" class="submit btn" id="saveSVG">
+        Save SVG
+    </button>
+</div>
+
+<div id="devDiagram"></div>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js"></script>
+<script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
+<script>
+    (function() {
+        'use strict';
+
+        let layoutEngine = document.querySelector('#engine');
+        let saveSVG = document.querySelector('#saveSVG');
+        let graph = d3.select('#devDiagram').graphviz({
+            tweenShapes: false,
+            tweenPaths: false,
+        });
+        {#let dot = ``;#}
+        let dot = `{{ craft.entityDiagrams.getDot(config, dotOptions)|raw }}`;
+        // let graph = graphviz('#devDiagram');
+
+        if (layoutEngine && saveSVG) {
+            graph
+                .engine(layoutEngine.value)
+                .transition(function() {
+                    return d3.transition()
+                        .delay(100)
+                        .duration(1000);
+                })
+                .renderDot(dot);
+            console.log(dot);
+
+            layoutEngine.addEventListener('change', function(ev) {
+                graph
+                    .engine(layoutEngine.value)
+                    .transition(function() {
+                        return d3.transition()
+                            .delay(100)
+                            .duration(1000);
+                    })
+                    .renderDot(dot);
+            });
+
+            saveSVG.addEventListener('click', function(ev) {
+                let SVG = document.querySelector('#devDiagram').innerHTML;
+
+                let el = document.createElement('a');
+                el.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+                    encodeURIComponent(SVG));
+                el.setAttribute('download', 'OSCAR Diagram.svg');
+
+                el.style.display = 'none';
+                document.body.appendChild(el);
+
+                el.click();
+
+                document.body.removeChild(el);
+            });
+        }
+
+    })();
+</script>
+</body>
+</html>

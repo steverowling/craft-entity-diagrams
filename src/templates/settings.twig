@@ -1,0 +1,99 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Entity Diagrams plugin for Craft CMS 3.x
+ *
+ * Entity Diagrams Settings.twig
+ *
+ * @author    Steve Rowling
+ * @copyright Copyright (c) 2022 Steve Rowling
+ * @link      https://springworks.co.uk
+ * @package   EntityDiagrams
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+<h2>Default Options</h2>
+<p>Choose which options to include in entity diagrams. These will be overridden if a pre-defined docGroup is selected.</p>
+
+{% for handle, value in settings['options'] %}
+    {{ forms.checkboxField({
+        label: handle|snake|replace({'_':' '})|capitalize,
+        name: 'options['~handle~']',
+        id: handle,
+        value: 1,
+        checked: value})
+    }}
+{% endfor %}
+
+<h2>DOT Options</h2>
+
+{% set fieldOptions = [
+    {
+        'label': 'Left -> Right',
+        'value': 'LR',
+    },
+    {
+        'label': 'Top -> Bottom',
+        'value': 'TB',
+    },
+] %}
+
+{{ forms.selectField({
+    handle:'rankdir',
+    name:'dotOptions[rankDir]',
+    id: 'rankdir',
+    label:'Rank Direction',
+    instructions: '',
+    value: settings['dotOptions']['rankDir'],
+    required: false,
+    options: fieldOptions,
+}) }}
+
+{% set fieldOptions = [
+    {
+        label: 'Splines',
+        value: 'splines',
+    },
+    {
+        label: 'Compound',
+        value: 'compound',
+    },
+    {
+        label: 'Orthogonal',
+        value: 'ortho',
+    },
+    {
+        label: 'Polyline',
+        value: 'polyline',
+    },
+    {
+        label: 'Curved',
+        value: 'curved',
+    },
+    {
+        label: 'Line',
+        value: 'line',
+    },
+] %}
+
+{{ forms.selectField({
+    handle:'splines',
+    name:'dotOptions[splines]',
+    id: 'splines',
+    label:'Link Style',
+    instructions: '',
+    value: settings['dotOptions']['splines'],
+    options: fieldOptions,
+}) }}
+
+{{ forms.textField({
+    handle:'title',
+    name:'dotOptions[title]',
+    id: 'title',
+    label:'Diagram Title',
+    instructions: '',
+    value: settings['dotOptions']['title'],
+}) }}
