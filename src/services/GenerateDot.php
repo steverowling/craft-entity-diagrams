@@ -182,9 +182,9 @@ class GenerateDot extends Component
         // Generate DOT template for documentation
         // =========================================================================
 
-        $dotStart = 'digraph "' . App::env('SITE_NAME_OSCAR') . ' ' . $dotOptions['title'] . '" {
+        $dotStart = 'digraph "' . $dotOptions['title'] . '" {
     rankdir = ' . $dotOptions['rankDir'] . ';
-    graph [fontname = "Helvetica,Arial,sans-serif", fontsize="24", label = "OSCAR ' . $dotOptions['title'] . '" splines="' . $dotOptions['splines'] . '" ranksep="1.5" overlap="false" nodesep="1.5"];
+    graph [fontname = "Helvetica,Arial,sans-serif", fontsize="24", label = "' . $dotOptions['title'] . '" splines="' . $dotOptions['splines'] . '" ranksep="1.5" overlap="false" nodesep="1.5"];
     node [shape="plaintext", fontname = "Helvetica,Arial,sans-serif "];
     ';
 
