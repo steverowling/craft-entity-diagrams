@@ -504,12 +504,38 @@ class GenerateDot extends Component
     private function _generateField($field, $prefix, $sides, $config, $docElement, &$labelHTML, &$links, $fieldParent = null): void
     {
         $fieldHandle = $fieldParent ? $fieldParent . $field->handle : $field->handle;
-        if (in_array(get_class($field), [Categories::class, Entries::class, Users::class, Tags::class])) {
+        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class])) {
             if (!$field->allowMultipleSources) {
                 $this->_generateRelationFieldLinks($field, $field->source, $config, $docElement, $links, $fieldParent);
             } else {
                 if ($field->sources === '*') {
                     $sources = [];
+                    switch (get_class($field)) {
+
+                        case Categories::class:
+                            foreach ($this->categories as $category) {
+                                $source[] = 'group:' . $category->uid;
+                            }
+                            break;
+
+                        case Entries::class:
+                            foreach ($this->sections as $section) {
+                                $source[] = 'section:' . $section->uid;
+                            }
+                            break;
+
+                        case Tags::class:
+                            foreach ($this->tags as $tag) {
+                                $source[] = 'group:' . $tag->uid;
+                            }
+                            break;
+
+                        case Users::class:
+                            foreach ($this->userGroups as $userGroup) {
+                                $source[] = 'group:' . $userGroup->uid;
+                            }
+                            break;
+                    }
                 } elseif ($field->sources && !is_array($field->sources)) {
                     $sources = [$field->sources];
                 } else {
@@ -529,6 +555,9 @@ class GenerateDot extends Component
             } else {
                 if ($field->sources === '*') {
                     $sources = [];
+                    foreach ($this->volumes as $volume) {
+                        $sources[] = 'volume:' . $volume->uid;
+                    }
                 } elseif ($field->sources && !is_array($field->sources)) {
                     $sources = [$field->sources];
                 } else {

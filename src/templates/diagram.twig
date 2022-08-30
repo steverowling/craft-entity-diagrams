@@ -101,6 +101,7 @@
         });
         {#let dot = ``;#}
         let dot = `{{ craft.entityDiagrams.getDot(config, dotOptions)|raw }}`;
+        let diagramName = dot.split('"')[1];
         // let graph = graphviz('#devDiagram');
 
         if (layoutEngine && saveSVG) {
@@ -131,7 +132,7 @@
                 let el = document.createElement('a');
                 el.setAttribute('href', 'data:text/plain;charset=utf-8,' +
                     encodeURIComponent(SVG));
-                el.setAttribute('download', document.querySelector('#devDiagram title').innerText + '.svg');
+                el.setAttribute('download', `${diagramName}.svg`);
 
                 el.style.display = 'none';
                 document.body.appendChild(el);
