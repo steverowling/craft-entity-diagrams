@@ -2,8 +2,6 @@
 
 Generate entity diagrams that show how the different parts of your Craft site relate to each other
 
-![Screenshot](resources/img/plugin-logo.png)
-
 ## Requirements
 
 This plugin requires Craft CMS 3.0.0-beta.23 or later.
@@ -18,7 +16,7 @@ To install the plugin, follow these instructions.
 
 2. Then tell Composer to load the plugin:
 
-        composer require steverowling/entity-diagrams
+        composer require springworks/entity-diagrams
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Entity Diagrams.
 
