@@ -28,7 +28,6 @@ use craft\models\Section;
 use craft\models\TagGroup;
 use craft\models\UserGroup;
 use Exception;
-use modules\oscar\archives\BaseArchive;
 use springworks\entitydiagrams\EntityDiagrams;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
@@ -401,6 +400,14 @@ class GenerateDot extends Component
                                 $linkToUid = $volume->uid;
                             }
                         }
+                        foreach ($this->products as $product) {
+                            if ($product->handle === $linkFromElementHandle) {
+                                $linkFromUid = $product->uid;
+                            }
+                            if ($product->handle === $linkTo) {
+                                $linkToUid = $product->uid;
+                            }
+                        }
                         foreach ($this->customNodes as $customNode) {
                             if ($customNode['handle'] === $linkFromElementHandle) {
                                 $linkFromUid = $customNode['handle'];
@@ -491,7 +498,7 @@ class GenerateDot extends Component
                 $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
                 break;
 
-            /** @var ProductType $docElement */
+            /** @var craft\commerce\models\ProductType $docElement */
             case craft\commerce\models\ProductType::class:
                 // craft\commerce\models\ProductType - get field layouts for this product type
                 $fieldLayoutId = $docElement->fieldLayoutId;
@@ -538,11 +545,12 @@ class GenerateDot extends Component
      * @param $docElement
      * @param $labelHTML
      * @param $links
+     * @param null $fieldParent
      */
     private function _generateField($field, $prefix, $sides, $config, $docElement, &$labelHTML, &$links, $fieldParent = null): void
     {
         $fieldHandle = $fieldParent ? $fieldParent . $field->handle : $field->handle;
-        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class]) || ($this->products && get_class($field) === craft\commerce\fields\Products::class)) {
+        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class]) || ($this->products && (get_class($field) === craft\commerce\fields\Products::class))) {
             if (!$field->allowMultipleSources) {
                 $this->_generateRelationFieldLinks($field, $field->source, $config, $docElement, $links, $fieldParent);
             } else {
@@ -624,6 +632,7 @@ class GenerateDot extends Component
      * @param $config
      * @param $docElement
      * @param $links
+     * @param null $fieldParent
      */
     private function _generateRelationFieldLinks($field, $source, $config, $docElement, &$links, $fieldParent = null): void
     {
