@@ -156,6 +156,22 @@
                     style: 'margin-bottom: 1em;'
                 }
             }) }}
+
+            {% if craft.entityDiagrams.isCommerceEnabled %}
+                {{ forms.selectField({
+                    handle:'products',
+                    name:'products',
+                    id: 'products',
+                    label:'Product Types',
+                    instructions: '',
+                    value: '*',
+                    required: false,
+                    options: fieldOptions,
+                    fieldAttributes: {
+                        style: 'margin-bottom: 1em;'
+                    }
+                }) }}
+            {% endif %}
         </div>
 
 

@@ -43,4 +43,16 @@ class EntityDiagramsVariable
     {
         return EntityDiagrams::$plugin->getSettings()->toArray();
     }
+
+    /**
+     * Checks that Commerce plugin is installed
+     *
+     * @return bool
+     */
+    public function isCommerceEnabled(): bool
+    {
+        $plugins = Craft::$app->getPlugins();
+
+        return $plugins->isPluginEnabled('commerce');
+    }
 }

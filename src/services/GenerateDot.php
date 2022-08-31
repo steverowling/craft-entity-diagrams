@@ -177,6 +177,21 @@ class GenerateDot extends Component
                     $this->customNodes[] = $customNode;
                 }
             }
+
+            // Products
+            $plugins = Craft::$app->getPlugins();
+
+            if ($plugins->isPluginEnabled('commerce')) {
+                $productTypesService = craft\commerce\Plugin::getInstance()->getProductTypes();
+
+                if (!is_array($config['products']) && $config['products'] === '*') {
+                    $this->products = $productTypesService->getAllProductTypes();
+                } else {
+                    foreach ($config['products'] as $handle) {
+                        $this->products[] = $productTypesService->getProductTypeByHandle($handle);
+                    }
+                }
+            }
 //        }
 
         // Generate DOT template for documentation
@@ -283,6 +298,19 @@ class GenerateDot extends Component
 
                 $labelHTML .= '</table>>]';
                 $nodes[] = '"' . $docVolume->uid . '" ' . $labelHTML;
+            }
+
+            // Products
+            foreach ($this->products as $docProduct) {
+                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docProduct->name) . '</b></td></tr><tr><td align="left">PRODUCT TYPE</td></tr>';
+
+                // Fields
+                if ($config['options']['includeFields']) {
+                    $this->_generateFields($config, $docProduct, $labelHTML, $links);
+                }
+
+                $labelHTML .= '</table>>]';
+                $nodes[] = '"' . $docProduct->uid . '" ' . $labelHTML;
             }
 
 //        }
@@ -458,7 +486,14 @@ class GenerateDot extends Component
 
             /** @var Volume $docElement */
             case Volume::class:
-                // Volume - get field layouts for this tag group
+                // Volume - get field layouts for this volume
+                $fieldLayoutId = $docElement->fieldLayoutId;
+                $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
+                break;
+
+            /** @var ProductType $docElement */
+            case craft\commerce\models\ProductType::class:
+                // craft\commerce\models\ProductType - get field layouts for this product type
                 $fieldLayoutId = $docElement->fieldLayoutId;
                 $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
                 break;
@@ -507,7 +542,7 @@ class GenerateDot extends Component
     private function _generateField($field, $prefix, $sides, $config, $docElement, &$labelHTML, &$links, $fieldParent = null): void
     {
         $fieldHandle = $fieldParent ? $fieldParent . $field->handle : $field->handle;
-        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class])) {
+        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class]) || ($this->products && get_class($field) === craft\commerce\fields\Products::class)) {
             if (!$field->allowMultipleSources) {
                 $this->_generateRelationFieldLinks($field, $field->source, $config, $docElement, $links, $fieldParent);
             } else {
@@ -536,6 +571,12 @@ class GenerateDot extends Component
                         case Users::class:
                             foreach ($this->userGroups as $userGroup) {
                                 $source[] = 'group:' . $userGroup->uid;
+                            }
+                            break;
+
+                        case craft\commerce\fields\Products::class:
+                            foreach ($this->products as $product) {
+                                $source[] = 'product:' . $product->uid;
                             }
                             break;
                     }
@@ -621,6 +662,14 @@ class GenerateDot extends Component
             if (!$includeSource) {
                 foreach ($this->volumes as $volume) {
                     if ('volume:' . $volume->uid === $source) {
+                        $includeSource = true;
+                        break;
+                    }
+                }
+            }
+            if (!$includeSource) {
+                foreach ($this->products as $product) {
+                    if ('product:' . $product->uid === $source) {
                         $includeSource = true;
                         break;
                     }
