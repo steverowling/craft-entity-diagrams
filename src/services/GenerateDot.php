@@ -501,8 +501,7 @@ class GenerateDot extends Component
             /** @var craft\commerce\models\ProductType $docElement */
             case craft\commerce\models\ProductType::class:
                 // craft\commerce\models\ProductType - get field layouts for this product type
-                $fieldLayoutId = $docElement->fieldLayoutId;
-                $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
+                $fieldLayouts = [$docElement->getProductFieldLayout()];
                 break;
         }
 
