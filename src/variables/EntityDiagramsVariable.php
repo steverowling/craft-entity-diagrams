@@ -10,7 +10,7 @@
 
 namespace springworks\entitydiagrams\variables;
 
-
+use Craft;
 use springworks\entitydiagrams\EntityDiagrams;
 use springworks\entitydiagrams\models\Settings;
 
