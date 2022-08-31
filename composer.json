@@ -2,7 +2,7 @@
     "name": "springworks/entity-diagrams",
     "description": "Generate entity diagrams that show how the different parts of your Craft site relate to each other",
     "type": "craft-plugin",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "keywords": [
         "craft",
         "cms",
