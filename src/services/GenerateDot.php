@@ -425,7 +425,7 @@ class GenerateDot extends Component
                 // Section - get field layouts for this section
                 $entryTypes = $docElement->getEntryTypes();
                 foreach ($entryTypes as $entryType) {
-                    $fieldLayouts[] = $fields->getLayoutById($entryType->fieldLayoutId);
+                    $fieldLayouts[$entryType->name] = $fields->getLayoutById($entryType->fieldLayoutId);
                 }
                 break;
 
@@ -464,7 +464,10 @@ class GenerateDot extends Component
                 break;
         }
 
-        foreach ($fieldLayouts as $fieldLayout) {
+        foreach ($fieldLayouts as $key => $fieldLayout) {
+            if (is_string($key)) {
+                $labelHTML .= '<tr><td align="left" bgcolor="#bebebe"><font point-size="10">ENTRY TYPE: ' . htmlspecialchars($key) . '</font></td></tr>';
+            }
             foreach ($fieldLayout->getTabs() as $tab) {
                 if (!$config['options']['includeOnlyRelationFields']) {
                     $labelHTML .= '<tr><td align="left" bgcolor="#ebebeb"><font point-size="10">TAB: ' . htmlspecialchars($tab->name) . '</font></td></tr>';
