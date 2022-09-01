@@ -1,7 +1,7 @@
 {% apply spaceless %}
     {%- import "_includes/forms" as forms -%}
     {%- do view.registerCssFile(view.getAssetManager().getPublishedUrl('@vendor/craftcms/cms/src/web/assets/cp/dist/css/cp.css')) -%}
-    {% set fileSettings = craft.app.config.getConfigFromFile('developer-documentation') %}
+    {% set fileSettings = craft.app.config.getConfigFromFile('entity-diagrams') %}
     {% set settings = craft.entityDiagrams.getSettings() %}
     {% set dotOptions = settings.dotOptions %}
     {% set config = settings|filter((v, k) => k != 'dotOptions') %}
@@ -16,6 +16,9 @@
         {% set config = config|merge({
             options: params['options']
         }) %}
+    {% endif %}
+    {% if params and (params['dotOptions'] is defined) %}
+        {% set dotOptions = dotOptions|merge(params['dotOptions']) %}
     {% endif %}
     {% if params %}
         {% for element in ['sections','categories','globals','userGroups','tags','volumes','products'] %}

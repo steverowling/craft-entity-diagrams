@@ -116,8 +116,8 @@ class Settings extends Model
 
     /**
      * Use this to add any custom links not handled automatically by Craft, e.g. linking to a matrix block id in a field.
-     * Note that you cna also link fields in custom nodes to any other node using this feature
-     * Format: "section.handle|categoryGroup.handle|userGroup.handle[:field.handle] -> section.handle|categoryGroup.handle|userGroup.handle"
+     * Note that you can also link fields in custom nodes to any other node using this feature
+     * Format: "nodeHandle[:field.handle] -> nodeHandle"
      * e.g.: "mySectionHandle:matrixBlockId -> myOtherSectionHandle"
      *
      * @var array
@@ -133,9 +133,9 @@ class Settings extends Model
         'includeFields' => 1,
         'includeOnlyRelationFields' => 0,
         'expandMatrixBlocks' => 1,
-        'includeAuthor' => 1,
-        'includeCustomNodes' => 1,
-        'includeCustomLinks' => 1,
+        'includeAuthor' => 0,
+        'includeCustomNodes' => 0,
+        'includeCustomLinks' => 0,
     ];
 
     /**

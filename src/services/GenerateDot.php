@@ -12,25 +12,21 @@ namespace springworks\entitydiagrams\services;
 
 use Craft;
 use craft\base\Volume;
+use craft\commerce\fields\Products;
+use craft\commerce\models\ProductType;
 use craft\elements\GlobalSet;
-use craft\errors\MissingComponentException;
 use craft\fields\Assets;
 use craft\fields\Categories;
 use craft\fields\Entries;
 use craft\fields\Matrix;
 use craft\fields\Tags;
 use craft\fields\Users;
-use craft\helpers\App;
 use craft\helpers\Component;
-use craft\helpers\FileHelper;
 use craft\models\CategoryGroup;
 use craft\models\Section;
 use craft\models\TagGroup;
 use craft\models\UserGroup;
-use Exception;
 use springworks\entitydiagrams\EntityDiagrams;
-use yii\base\ErrorException;
-use yii\base\InvalidConfigException;
 
 /**
  * GenerateDot Service
@@ -50,36 +46,36 @@ class GenerateDot extends Component
     /**
      * @var array
      */
-    protected $sections = [];
+    protected array $sections = [];
     /**
      * @var array
      */
-    protected $categories = [];
+    protected array $categories = [];
     /**
      * @var array
      */
-    protected $userGroups = [];
+    protected array $userGroups = [];
     /**
      * @var array
      */
-    protected $globals = [];
+    protected array $globals = [];
     /**
      * @var array
      */
-    protected $tags = [];
+    protected array $tags = [];
     /**
     /**
      * @var array
      */
-    protected $volumes = [];
+    protected array $volumes = [];
     /**
      * @var array
      */
-    protected $products = [];
+    protected array $products = [];
     /**
      * @var array
      */
-    protected $customNodes = [];
+    protected array $customNodes = [];
 
     // Public Methods
     // =========================================================================
@@ -93,7 +89,7 @@ class GenerateDot extends Component
      */
     public function generateDot(array $config = [], array $dotOptions = []) : string
     {
-        $settings = EntityDiagrams::$plugin->getSettings();
+        $settings = EntityDiagrams::$plugin->getSettings()->toArray();
 
         if (!$dotOptions) {
             $dotOptions = $settings['dotOptions'];
@@ -124,74 +120,72 @@ class GenerateDot extends Component
             }
         }
 
-//        if (!$config['globalOptions']['onlyIncludeSections']) {
-            // Categories
-            if (!is_array($config['categories']) && $config['categories'] === '*') {
-                $this->categories = $categoriesService->getAllGroups();
+        // Categories
+        if (!is_array($config['categories']) && $config['categories'] === '*') {
+            $this->categories = $categoriesService->getAllGroups();
+        } else {
+            foreach ($config['categories'] as $groupHandle) {
+                $this->categories[] = $categoriesService->getGroupByHandle($groupHandle);
+            }
+        }
+
+        // User Groups
+        if (!is_array($config['userGroups']) && $config['userGroups'] === '*') {
+            $this->userGroups = $userGroupsService->getAllGroups();
+        } else {
+            foreach ($config['userGroups'] as $groupHandle) {
+                $this->userGroups[] = $userGroupsService->getGroupByHandle($groupHandle);
+            }
+        }
+
+        // Globals
+        if (!is_array($config['globals']) && $config['globals'] === '*') {
+            $this->globals = $globalsService->getAllSets();
+        } else {
+            foreach ($config['globals'] as $setHandle) {
+                $this->globals[] = $globalsService->getSetByHandle($setHandle);
+            }
+        }
+
+        // Tags
+        if (!is_array($config['tags']) && $config['tags'] === '*') {
+            $this->tags = $tagsService->getAllTagGroups();
+        } else {
+            foreach ($config['tags'] as $groupHandle) {
+                $this->tags[] = $tagsService->getTagGroupByHandle($groupHandle);
+            }
+        }
+
+        // Volumes
+        if (!is_array($config['volumes']) && $config['volumes'] === '*') {
+            $this->volumes = $volumesService->getAllVolumes();
+        } else {
+            foreach ($config['volumes'] as $handle) {
+                $this->volumes[] = $volumesService->getVolumeByHandle($handle);
+            }
+        }
+
+        // Custom Nodes
+        if ($config['customNodes']) {
+            foreach ($config['customNodes'] as $customNode) {
+                $this->customNodes[] = $customNode;
+            }
+        }
+
+        // Products
+        $plugins = Craft::$app->getPlugins();
+
+        if ($plugins->isPluginEnabled('commerce')) {
+            $productTypesService = craft\commerce\Plugin::getInstance()->getProductTypes();
+
+            if (!is_array($config['products']) && $config['products'] === '*') {
+                $this->products = $productTypesService->getAllProductTypes();
             } else {
-                foreach ($config['categories'] as $groupHandle) {
-                    $this->categories[] = $categoriesService->getGroupByHandle($groupHandle);
+                foreach ($config['products'] as $handle) {
+                    $this->products[] = $productTypesService->getProductTypeByHandle($handle);
                 }
             }
-
-            // User Groups
-            if (!is_array($config['userGroups']) && $config['userGroups'] === '*') {
-                $this->userGroups = $userGroupsService->getAllGroups();
-            } else {
-                foreach ($config['userGroups'] as $groupHandle) {
-                    $this->userGroups[] = $userGroupsService->getGroupByHandle($groupHandle);
-                }
-            }
-
-            // Globals
-            if (!is_array($config['globals']) && $config['globals'] === '*') {
-                $this->globals = $globalsService->getAllSets();
-            } else {
-                foreach ($config['globals'] as $setHandle) {
-                    $this->globals[] = $globalsService->getSetByHandle($setHandle);
-                }
-            }
-
-            // Tags
-            if (!is_array($config['tags']) && $config['tags'] === '*') {
-                $this->tags = $tagsService->getAllTagGroups();
-            } else {
-                foreach ($config['tags'] as $groupHandle) {
-                    $this->tags[] = $tagsService->getTagGroupByHandle($groupHandle);
-                }
-            }
-
-            // Volumes
-            if (!is_array($config['volumes']) && $config['volumes'] === '*') {
-                $this->volumes = $volumesService->getAllVolumes();
-            } else {
-                foreach ($config['volumes'] as $handle) {
-                    $this->volumes[] = $volumesService->getVolumeByHandle($handle);
-                }
-            }
-
-            // Custom Nodes
-            if ($config['customNodes']) {
-                foreach ($config['customNodes'] as $customNode) {
-                    $this->customNodes[] = $customNode;
-                }
-            }
-
-            // Products
-            $plugins = Craft::$app->getPlugins();
-
-            if ($plugins->isPluginEnabled('commerce')) {
-                $productTypesService = craft\commerce\Plugin::getInstance()->getProductTypes();
-
-                if (!is_array($config['products']) && $config['products'] === '*') {
-                    $this->products = $productTypesService->getAllProductTypes();
-                } else {
-                    foreach ($config['products'] as $handle) {
-                        $this->products[] = $productTypesService->getProductTypeByHandle($handle);
-                    }
-                }
-            }
-//        }
+        }
 
         // Generate DOT template for documentation
         // =========================================================================
@@ -232,87 +226,83 @@ class GenerateDot extends Component
             $nodes[] = '"' . $docSection->uid . '" ' . $labelHTML;
         }
 
-//        if (!$config['globalOptions']['onlyIncludeSections']) {
+        // Categories
+        foreach ($this->categories as $docCategory) {
+            $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docCategory->name) . '</b></td></tr><tr><td align="left">CATEGORY GROUP</td></tr>';
 
-            // Categories
-            foreach ($this->categories as $docCategory) {
-                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docCategory->name) . '</b></td></tr><tr><td align="left">CATEGORY GROUP</td></tr>';
-
-                // Fields
-                if ($config['options']['includeFields']) {
-                    $this->_generateFields($config, $docCategory, $labelHTML, $links);
-                }
-
-                $labelHTML .= '</table>>]';
-                $nodes[] = '"' . $docCategory->uid . '" ' . $labelHTML;
+            // Fields
+            if ($config['options']['includeFields']) {
+                $this->_generateFields($config, $docCategory, $labelHTML, $links);
             }
 
-            // User Groups
-            foreach ($this->userGroups as $docUserGroup) {
-                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docUserGroup->name) . '</b></td></tr><tr><td align="left">USER GROUP</td></tr>';
+            $labelHTML .= '</table>>]';
+            $nodes[] = '"' . $docCategory->uid . '" ' . $labelHTML;
+        }
 
-                // Fields
-                if ($config['options']['includeFields']) {
-                    $this->_generateFields($config, $docUserGroup, $labelHTML, $links);
-                }
+        // User Groups
+        foreach ($this->userGroups as $docUserGroup) {
+            $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docUserGroup->name) . '</b></td></tr><tr><td align="left">USER GROUP</td></tr>';
 
-                $labelHTML .= '</table>>]';
-                $nodes[] = '"' . $docUserGroup->uid . '" ' . $labelHTML;
+            // Fields
+            if ($config['options']['includeFields']) {
+                $this->_generateFields($config, $docUserGroup, $labelHTML, $links);
             }
 
-            // Globals
-            foreach ($this->globals as $docGlobal) {
-                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docGlobal->name) . '</b></td></tr><tr><td align="left">GLOBAL</td></tr>';
+            $labelHTML .= '</table>>]';
+            $nodes[] = '"' . $docUserGroup->uid . '" ' . $labelHTML;
+        }
 
-                // Fields
-                if ($config['options']['includeFields']) {
-                    $this->_generateFields($config, $docGlobal, $labelHTML, $links);
-                }
+        // Globals
+        foreach ($this->globals as $docGlobal) {
+            $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docGlobal->name) . '</b></td></tr><tr><td align="left">GLOBAL</td></tr>';
 
-                $labelHTML .= '</table>>]';
-                $nodes[] = '"' . $docGlobal->uid . '" ' . $labelHTML;
+            // Fields
+            if ($config['options']['includeFields']) {
+                $this->_generateFields($config, $docGlobal, $labelHTML, $links);
             }
 
-            // Tags
-            foreach ($this->tags as $docTag) {
-                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docTag->name) . '</b></td></tr><tr><td align="left">TAG GROUP</td></tr>';
+            $labelHTML .= '</table>>]';
+            $nodes[] = '"' . $docGlobal->uid . '" ' . $labelHTML;
+        }
 
-                // Fields
-                if ($config['options']['includeFields']) {
-                    $this->_generateFields($config, $docTag, $labelHTML, $links);
-                }
+        // Tags
+        foreach ($this->tags as $docTag) {
+            $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docTag->name) . '</b></td></tr><tr><td align="left">TAG GROUP</td></tr>';
 
-                $labelHTML .= '</table>>]';
-                $nodes[] = '"' . $docTag->uid . '" ' . $labelHTML;
+            // Fields
+            if ($config['options']['includeFields']) {
+                $this->_generateFields($config, $docTag, $labelHTML, $links);
             }
 
-            // Volumes
-            foreach ($this->volumes as $docVolume) {
-                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docVolume->name) . '</b></td></tr><tr><td align="left">ASSET VOLUME</td></tr>';
+            $labelHTML .= '</table>>]';
+            $nodes[] = '"' . $docTag->uid . '" ' . $labelHTML;
+        }
 
-                // Fields
-                if ($config['options']['includeFields']) {
-                    $this->_generateFields($config, $docVolume, $labelHTML, $links);
-                }
+        // Volumes
+        foreach ($this->volumes as $docVolume) {
+            $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docVolume->name) . '</b></td></tr><tr><td align="left">ASSET VOLUME</td></tr>';
 
-                $labelHTML .= '</table>>]';
-                $nodes[] = '"' . $docVolume->uid . '" ' . $labelHTML;
+            // Fields
+            if ($config['options']['includeFields']) {
+                $this->_generateFields($config, $docVolume, $labelHTML, $links);
             }
 
-            // Products
-            foreach ($this->products as $docProduct) {
-                $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docProduct->name) . '</b></td></tr><tr><td align="left">PRODUCT TYPE</td></tr>';
+            $labelHTML .= '</table>>]';
+            $nodes[] = '"' . $docVolume->uid . '" ' . $labelHTML;
+        }
 
-                // Fields
-                if ($config['options']['includeFields']) {
-                    $this->_generateFields($config, $docProduct, $labelHTML, $links);
-                }
+        // Products
+        foreach ($this->products as $docProduct) {
+            $labelHTML = '[label=< <table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td align="center"><b>' . htmlspecialchars($docProduct->name) . '</b></td></tr><tr><td align="left">PRODUCT TYPE</td></tr>';
 
-                $labelHTML .= '</table>>]';
-                $nodes[] = '"' . $docProduct->uid . '" ' . $labelHTML;
+            // Fields
+            if ($config['options']['includeFields']) {
+                $this->_generateFields($config, $docProduct, $labelHTML, $links);
             }
 
-//        }
+            $labelHTML .= '</table>>]';
+            $nodes[] = '"' . $docProduct->uid . '" ' . $labelHTML;
+        }
 
         // Custom nodes
         if ($config['customNodes']) {
@@ -367,54 +357,52 @@ class GenerateDot extends Component
                             $linkToUid = $section->uid;
                         }
                     }
-                    if (!$config['globalOptions']['onlyIncludeSections']) {
-                        foreach ($this->categories as $category) {
-                            if ($category->handle === $linkFromElementHandle) {
-                                $linkFromUid = $category->uid;
-                            }
-                            if ($category->handle === $linkTo) {
-                                $linkToUid = $category->uid;
-                            }
+                    foreach ($this->categories as $category) {
+                        if ($category->handle === $linkFromElementHandle) {
+                            $linkFromUid = $category->uid;
                         }
-                        foreach ($this->userGroups as $userGroup) {
-                            if ($userGroup->handle === $linkFromElementHandle) {
-                                $linkFromUid = $userGroup->uid;
-                            }
-                            if ($userGroup->handle === $linkTo) {
-                                $linkToUid = $userGroup->uid;
-                            }
+                        if ($category->handle === $linkTo) {
+                            $linkToUid = $category->uid;
                         }
-                        foreach ($this->tags as $tag) {
-                            if ($tag->handle === $linkFromElementHandle) {
-                                $linkFromUid = $tag->uid;
-                            }
-                            if ($tag->handle === $linkTo) {
-                                $linkToUid = $tag->uid;
-                            }
+                    }
+                    foreach ($this->userGroups as $userGroup) {
+                        if ($userGroup->handle === $linkFromElementHandle) {
+                            $linkFromUid = $userGroup->uid;
                         }
-                        foreach ($this->volumes as $volume) {
-                            if ($volume->handle === $linkFromElementHandle) {
-                                $linkFromUid = $volume->uid;
-                            }
-                            if ($volume->handle === $linkTo) {
-                                $linkToUid = $volume->uid;
-                            }
+                        if ($userGroup->handle === $linkTo) {
+                            $linkToUid = $userGroup->uid;
                         }
-                        foreach ($this->products as $product) {
-                            if ($product->handle === $linkFromElementHandle) {
-                                $linkFromUid = $product->uid;
-                            }
-                            if ($product->handle === $linkTo) {
-                                $linkToUid = $product->uid;
-                            }
+                    }
+                    foreach ($this->tags as $tag) {
+                        if ($tag->handle === $linkFromElementHandle) {
+                            $linkFromUid = $tag->uid;
                         }
-                        foreach ($this->customNodes as $customNode) {
-                            if ($customNode['handle'] === $linkFromElementHandle) {
-                                $linkFromUid = $customNode['handle'];
-                            }
-                            if ($customNode['handle'] === $linkTo) {
-                                $linkToUid = $customNode['handle'];
-                            }
+                        if ($tag->handle === $linkTo) {
+                            $linkToUid = $tag->uid;
+                        }
+                    }
+                    foreach ($this->volumes as $volume) {
+                        if ($volume->handle === $linkFromElementHandle) {
+                            $linkFromUid = $volume->uid;
+                        }
+                        if ($volume->handle === $linkTo) {
+                            $linkToUid = $volume->uid;
+                        }
+                    }
+                    foreach ($this->products as $product) {
+                        if ($product->handle === $linkFromElementHandle) {
+                            $linkFromUid = $product->uid;
+                        }
+                        if ($product->handle === $linkTo) {
+                            $linkToUid = $product->uid;
+                        }
+                    }
+                    foreach ($this->customNodes as $customNode) {
+                        if ($customNode['handle'] === $linkFromElementHandle) {
+                            $linkFromUid = $customNode['handle'];
+                        }
+                        if ($customNode['handle'] === $linkTo) {
+                            $linkToUid = $customNode['handle'];
                         }
                     }
                     if ($linkFromUid && $linkToUid && $linkFromFieldHandle) {
@@ -491,22 +479,18 @@ class GenerateDot extends Component
                 $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
                 break;
 
-            /** @var Volume $docElement */
-            case Volume::class:
-                // Volume - get field layouts for this volume
-                $fieldLayoutId = $docElement->fieldLayoutId;
-                $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
-                break;
-
-            /** @var craft\commerce\models\ProductType $docElement */
-            case craft\commerce\models\ProductType::class:
-                // craft\commerce\models\ProductType - get field layouts for this product type
-                $fieldLayouts = [$docElement->getProductFieldLayout()];
-                break;
+            default:
+                if ($docElement instanceof Volume) {
+                    $fieldLayoutId = $docElement->fieldLayoutId;
+                    $fieldLayouts = $fieldLayoutId ? [$fields->getLayoutById($fieldLayoutId)] : [];
+                }
+                if ($docElement instanceof ProductType) {
+                    $fieldLayouts = [$docElement->getProductFieldLayout()];
+                }
         }
 
         foreach ($fieldLayouts as $key => $fieldLayout) {
-            if (is_string($key)) {
+            if (is_string($key) && !$config['options']['includeOnlyRelationFields']) {
                 $labelHTML .= '<tr><td align="left" bgcolor="#bebebe"><font point-size="10">ENTRY TYPE: ' . htmlspecialchars($key) . '</font></td></tr>';
             }
             foreach ($fieldLayout->getTabs() as $tab) {
@@ -523,11 +507,15 @@ class GenerateDot extends Component
                     if (get_class($field) === Matrix::class && $config['options']['expandMatrixBlocks']) {
                         foreach ($field->getBlockTypes() as $i => $blockType) {
                             $lastBlockType = ($i + 1) === count($field->getBlockTypes());
-                            $labelHTML .= '<tr><td align="left" sides="lr"><font color="#7f7f7f" point-size="10">BLOCK: ' . htmlspecialchars($blockType->name) . '</font></td></tr>';
+                            if (!$config['options']['includeOnlyRelationFields']) {
+                                $labelHTML .= '<tr><td align="left" sides="lr"><font color="#7f7f7f" point-size="10">BLOCK: ' . htmlspecialchars($blockType->name) . '</font></td></tr>';
+                            }
                             $blockTypeFieldLayout = $fields->getLayoutById($blockType->fieldLayoutId);
-                            foreach ($blockTypeFieldLayout->getFields() as $ind => $blockTypeField) {
-                                $sides = (($ind + 1) === count($blockTypeFieldLayout->getFields()) && $lastBlockType && $lastField) ? 'lrb' : 'lr';
-                                $this->_generateField($blockTypeField, '&rarr; ', $sides, $config, $docElement, $labelHTML, $links, $field->handle);
+                            if ($blockTypeFieldLayout) {
+                                foreach ($blockTypeFieldLayout->getFields() as $ind => $blockTypeField) {
+                                    $sides = (($ind + 1) === count($blockTypeFieldLayout->getFields()) && $lastBlockType && $lastField) ? 'lrb' : 'lr';
+                                    $this->_generateField($blockTypeField, '&rarr; ', $sides, $config, $docElement, $labelHTML, $links, $field->handle);
+                                }
                             }
                         }
                     }
@@ -549,7 +537,7 @@ class GenerateDot extends Component
     private function _generateField($field, $prefix, $sides, $config, $docElement, &$labelHTML, &$links, $fieldParent = null): void
     {
         $fieldHandle = $fieldParent ? $fieldParent . $field->handle : $field->handle;
-        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class]) || ($this->products && (get_class($field) === craft\commerce\fields\Products::class))) {
+        if (in_array(get_class($field), [Categories::class, Entries::class, Tags::class, Users::class])) {
             if (!$field->allowMultipleSources) {
                 $this->_generateRelationFieldLinks($field, $field->source, $config, $docElement, $links, $fieldParent);
             } else {
@@ -559,31 +547,25 @@ class GenerateDot extends Component
 
                         case Categories::class:
                             foreach ($this->categories as $category) {
-                                $source[] = 'group:' . $category->uid;
+                                $sources[] = 'group:' . $category->uid;
                             }
                             break;
 
                         case Entries::class:
                             foreach ($this->sections as $section) {
-                                $source[] = 'section:' . $section->uid;
+                                $sources[] = 'section:' . $section->uid;
                             }
                             break;
 
                         case Tags::class:
                             foreach ($this->tags as $tag) {
-                                $source[] = 'group:' . $tag->uid;
+                                $sources[] = 'group:' . $tag->uid;
                             }
                             break;
 
                         case Users::class:
                             foreach ($this->userGroups as $userGroup) {
-                                $source[] = 'group:' . $userGroup->uid;
-                            }
-                            break;
-
-                        case craft\commerce\fields\Products::class:
-                            foreach ($this->products as $product) {
-                                $source[] = 'product:' . $product->uid;
+                                $sources[] = 'group:' . $userGroup->uid;
                             }
                             break;
                     }
@@ -620,6 +602,16 @@ class GenerateDot extends Component
             }
             $sides = !$config['options']['includeOnlyRelationFields'] ? $sides : 'lrb';
             $labelHTML .= '<tr><td align="left" sides="' . $sides . '" port="' . $fieldHandle . '"><font point-size="12">' . $prefix . $field->handle . '</font> <font color="#7f7f7f" point-size="10">' . $field->displayName() . '</font></td></tr>';
+        } elseif ($field instanceof Products) {
+            $sources = [];
+            foreach ($this->products as $product) {
+                $sources[] = 'product:' . $product->uid;
+            }
+            foreach ($sources as $source) {
+                $this->_generateRelationFieldLinks($field, $source, $config, $docElement, $links, $fieldParent);
+            }
+            $sides = !$config['options']['includeOnlyRelationFields'] ? $sides : 'lrb';
+            $labelHTML .= '<tr><td align="left" sides="' . $sides . '" port="' . $fieldHandle . '"><font point-size="12">' . $prefix . $field->handle . '</font> <font color="#7f7f7f" point-size="10">' . $field->displayName() . '</font></td></tr>';
         } elseif (!$config['options']['includeOnlyRelationFields']) {
             $labelHTML .= '<tr><td align="left" sides="' . $sides . '" port="' . $fieldHandle . '"><font point-size="12">' . $prefix . $field->handle . '</font> <font color="#7f7f7f" point-size="10">' . $field->displayName() . '</font></td></tr>';
         }
@@ -642,48 +634,46 @@ class GenerateDot extends Component
                 break;
             }
         }
-//        if (!$config['globalOptions']['onlyIncludeSections']) {
-            if (!$includeSource) {
-                foreach ($this->categories as $category) {
-                    if ('group:' . $category->uid === $source) {
-                        $includeSource = true;
-                        break;
-                    }
+        if (!$includeSource) {
+            foreach ($this->categories as $category) {
+                if ('group:' . $category->uid === $source) {
+                    $includeSource = true;
+                    break;
                 }
             }
-            if (!$includeSource) {
-                foreach ($this->userGroups as $userGroup) {
-                    if ('group:' . $userGroup->uid === $source) {
-                        $includeSource = true;
-                        break;
-                    }
+        }
+        if (!$includeSource) {
+            foreach ($this->userGroups as $userGroup) {
+                if ('group:' . $userGroup->uid === $source) {
+                    $includeSource = true;
+                    break;
                 }
             }
-            if (!$includeSource) {
-                foreach ($this->tags as $tag) {
-                    if ('group:' . $tag->uid === $source) {
-                        $includeSource = true;
-                        break;
-                    }
+        }
+        if (!$includeSource) {
+            foreach ($this->tags as $tag) {
+                if ('group:' . $tag->uid === $source) {
+                    $includeSource = true;
+                    break;
                 }
             }
-            if (!$includeSource) {
-                foreach ($this->volumes as $volume) {
-                    if ('volume:' . $volume->uid === $source) {
-                        $includeSource = true;
-                        break;
-                    }
+        }
+        if (!$includeSource) {
+            foreach ($this->volumes as $volume) {
+                if ('volume:' . $volume->uid === $source) {
+                    $includeSource = true;
+                    break;
                 }
             }
-            if (!$includeSource) {
-                foreach ($this->products as $product) {
-                    if ('product:' . $product->uid === $source) {
-                        $includeSource = true;
-                        break;
-                    }
+        }
+        if (!$includeSource) {
+            foreach ($this->products as $product) {
+                if ('product:' . $product->uid === $source) {
+                    $includeSource = true;
+                    break;
                 }
             }
-//        }
+        }
         $fieldHandle = $fieldParent ? $fieldParent . $field->handle : $field->handle;
 
         if ($includeSource) {
