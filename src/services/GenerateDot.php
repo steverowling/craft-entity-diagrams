@@ -116,7 +116,10 @@ class GenerateDot extends Component
             $this->sections = $sectionsService->getAllSections();
         } else {
             foreach ($config['sections'] as $sectionHandle) {
-                $this->sections[] = $sectionsService->getSectionByHandle($sectionHandle);
+                $section = $sectionsService->getSectionByHandle($sectionHandle);
+                if ($section) {
+                    $this->sections[] = $section;
+                }
             }
         }
 
@@ -125,7 +128,10 @@ class GenerateDot extends Component
             $this->categories = $categoriesService->getAllGroups();
         } else {
             foreach ($config['categories'] as $groupHandle) {
-                $this->categories[] = $categoriesService->getGroupByHandle($groupHandle);
+                $category = $categoriesService->getGroupByHandle($groupHandle);
+                if ($category) {
+                    $this->categories[] = $category;
+                }
             }
         }
 
@@ -134,7 +140,10 @@ class GenerateDot extends Component
             $this->userGroups = $userGroupsService->getAllGroups();
         } else {
             foreach ($config['userGroups'] as $groupHandle) {
-                $this->userGroups[] = $userGroupsService->getGroupByHandle($groupHandle);
+                $userGroup = $userGroupsService->getGroupByHandle($groupHandle);
+                if ($userGroup) {
+                    $this->userGroups[] = $userGroup;
+                }
             }
         }
 
@@ -143,7 +152,10 @@ class GenerateDot extends Component
             $this->globals = $globalsService->getAllSets();
         } else {
             foreach ($config['globals'] as $setHandle) {
-                $this->globals[] = $globalsService->getSetByHandle($setHandle);
+                $global = $globalsService->getSetByHandle($setHandle);
+                if ($global) {
+                    $this->globals[] = $global;
+                }
             }
         }
 
@@ -152,7 +164,10 @@ class GenerateDot extends Component
             $this->tags = $tagsService->getAllTagGroups();
         } else {
             foreach ($config['tags'] as $groupHandle) {
-                $this->tags[] = $tagsService->getTagGroupByHandle($groupHandle);
+                $tagGroup = $tagsService->getTagGroupByHandle($groupHandle);
+                if ($tagGroup) {
+                    $this->tags[] = $tagGroup;
+                }
             }
         }
 
@@ -161,7 +176,10 @@ class GenerateDot extends Component
             $this->volumes = $volumesService->getAllVolumes();
         } else {
             foreach ($config['volumes'] as $handle) {
-                $this->volumes[] = $volumesService->getVolumeByHandle($handle);
+                $volume = $volumesService->getVolumeByHandle($handle);
+                if ($volume) {
+                    $this->volumes[] = $volume;
+                }
             }
         }
 
@@ -182,7 +200,10 @@ class GenerateDot extends Component
                 $this->products = $productTypesService->getAllProductTypes();
             } else {
                 foreach ($config['products'] as $handle) {
-                    $this->products[] = $productTypesService->getProductTypeByHandle($handle);
+                    $productType = $productTypesService->getProductTypeByHandle($handle);
+                    if ($productType) {
+                        $this->products[] = $productType;
+                    }
                 }
             }
         }

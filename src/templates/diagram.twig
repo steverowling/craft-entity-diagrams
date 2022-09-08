@@ -11,27 +11,28 @@
         {% set dotOptions = dotOptions|merge({
             title: params['docGroup']
         }) %}
-    {% endif %}
-    {% if params and (params['options'] is defined) %}
-        {% set config = config|merge({
-            options: params['options']
-        }) %}
-    {% endif %}
-    {% if params and (params['dotOptions'] is defined) %}
-        {% set dotOptions = dotOptions|merge(params['dotOptions']) %}
-    {% endif %}
-    {% if params %}
-        {% for element in ['sections','categories','globals','userGroups','tags','volumes','products'] %}
-            {% if params[element] == '*' %}
-                {% set config = config|merge({
-                    (element): '*'
-                }) %}
-            {% else %}
-                {% set config = config|merge({
-                    (element): []
-                }) %}
-            {% endif %}
-        {% endfor %}
+    {% else %}
+        {% if params and (params['options'] is defined) %}
+            {% set config = config|merge({
+                options: params['options']
+            }) %}
+        {% endif %}
+        {% if params and (params['dotOptions'] is defined) %}
+            {% set dotOptions = dotOptions|merge(params['dotOptions']) %}
+        {% endif %}
+        {% if params %}
+            {% for element in ['sections','categories','globals','userGroups','tags','volumes','products'] %}
+                {% if params[element] == '*' %}
+                    {% set config = config|merge({
+                        (element): '*'
+                    }) %}
+                {% else %}
+                    {% set config = config|merge({
+                        (element): []
+                    }) %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     {% endif %}
 {% endapply %}
 <html lang="en">
