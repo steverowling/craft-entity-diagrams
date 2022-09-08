@@ -38,7 +38,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $sections = '*';
+    public string|array $sections = '*';
 
     /**
      * List of category group handles to include in entity diagram
@@ -46,7 +46,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $categories = '*';
+    public string|array $categories = '*';
 
     /**
      * List of user group handles to include in entity diagram
@@ -54,7 +54,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $userGroups = '*';
+    public string|array $userGroups = '*';
 
     /**
      * List of global set handles to include in entity diagram
@@ -62,7 +62,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $globals = '*';
+    public string|array $globals = '*';
 
     /**
      * List of tag group handles to include in entity diagram
@@ -70,7 +70,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $tags = '*';
+    public string|array $tags = '*';
 
     /**
      * List of asset volume handles to include in entity diagram
@@ -78,7 +78,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $volumes = '*';
+    public string|array $volumes = '*';
 
     /**
      * List of product type handles to include in entity diagram (only relevant of Commerce plugin is installed)
@@ -86,7 +86,7 @@ class Settings extends Model
      *
      * @var string|array
      */
-    public $products = [];
+    public string|array $products = [];
 
     /**
      * Use this to map section handles to an array of user group handles that represent authors of those sections
@@ -94,7 +94,7 @@ class Settings extends Model
      *
      * @var array
      */
-    public $authorMap = [];
+    public array $authorMap = [];
 
     /**
      * Use this to add any custom nodes not handled automatically by Craft, e.g. custom database tables
@@ -112,7 +112,7 @@ class Settings extends Model
      *
      * @var array
      */
-    public $customNodes = [];
+    public array $customNodes = [];
 
     /**
      * Use this to add any custom links not handled automatically by Craft, e.g. linking to a matrix block id in a field.
@@ -122,14 +122,14 @@ class Settings extends Model
      *
      * @var array
      */
-    public $customLinks = [];
+    public array $customLinks = [];
 
     /**
      * Options
      *
      * @var array
      */
-    public $options = [
+    public array $options = [
         'includeFields' => 1,
         'includeOnlyRelationFields' => 0,
         'expandMatrixBlocks' => 1,
@@ -143,7 +143,7 @@ class Settings extends Model
      *
      * @var array
      */
-    public $dotOptions = [
+    public array $dotOptions = [
         'rankDir' => 'LR',
         'splines' => 'splines',
         'title' => 'Site Diagram',
@@ -160,7 +160,7 @@ class Settings extends Model
      * @param mixed $current the currently validated value of attribute.
      * This parameter is available since version 2.0.36.
      */
-    public function validateElementList($attribute, $params, $validator, $current): void
+    public function validateElementList(string $attribute, mixed $params, InlineValidator $validator, mixed $current): void
     {
         if (!is_array($this->$attribute) && $this->$attribute !== '*') {
             $this->addError($attribute, '{attribute} must be an array of handles or the string "*".');
