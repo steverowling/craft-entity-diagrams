@@ -1,6 +1,6 @@
 <?php
 /**
- * Entity Diagrams plugin for Craft CMS 3.x
+ * Entity Diagrams plugin for Craft CMS 4.x
  *
  * Generate entity diagrams that show how the different parts of your Craft site relate to each other
  *

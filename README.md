@@ -1,10 +1,10 @@
-# Entity Diagrams plugin for Craft CMS 3.x
+# Entity Diagrams plugin for Craft CMS 4.x
 
 Generate entity diagrams that show how the different parts of your Craft site relate to each other
 
 ## Requirements
 
-This plugin requires Craft CMS 3.0.0-beta.23 or later.
+This plugin requires Craft CMS 4.0.0 or later.
 
 ## Installation
 

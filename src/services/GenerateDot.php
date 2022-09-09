@@ -1,6 +1,6 @@
 <?php
 /**
- * Entity Diagrams plugin for Craft CMS 3.x
+ * Entity Diagrams plugin for Craft CMS 4.x
  *
  * Generate entity diagrams that show how the different parts of your Craft site relate to each other
  *
@@ -11,10 +11,10 @@
 namespace springworks\entitydiagrams\services;
 
 use Craft;
-use craft\base\Volume;
 use craft\commerce\fields\Products;
 use craft\commerce\models\ProductType;
 use craft\elements\GlobalSet;
+use craft\fieldlayoutelements\CustomField;
 use craft\fields\Assets;
 use craft\fields\Categories;
 use craft\fields\Entries;
@@ -26,6 +26,7 @@ use craft\models\CategoryGroup;
 use craft\models\Section;
 use craft\models\TagGroup;
 use craft\models\UserGroup;
+use craft\models\Volume;
 use springworks\entitydiagrams\EntityDiagrams;
 
 /**
@@ -518,9 +519,15 @@ class GenerateDot extends Component
                 if (!$config['options']['includeOnlyRelationFields']) {
                     $labelHTML .= '<tr><td align="left" bgcolor="#ebebeb"><font point-size="10">TAB: ' . htmlspecialchars($tab->name) . '</font></td></tr>';
                 }
-                foreach ($tab->getFields() as $index => $field) {
-                    $sides = ($index + 1) === count($tab->getFields()) ? 'lrb' : 'lr';
-                    $lastField = ($index + 1) === count($tab->getFields());
+                $tabFields = [];
+                foreach ($tab->getElements() as $element) {
+                    if ($element instanceof CustomField) {
+                        $tabFields[] = $element->getField();
+                    }
+                }
+                foreach ($tabFields as $index => $field) {
+                    $sides = ($index + 1) === count($tabFields) ? 'lrb' : 'lr';
+                    $lastField = ($index + 1) === count($tabFields);
                     if (get_class($field) === Matrix::class && $config['options']['expandMatrixBlocks']) {
                         $sides = 'lr';
                     }
@@ -533,8 +540,8 @@ class GenerateDot extends Component
                             }
                             $blockTypeFieldLayout = $fields->getLayoutById($blockType->fieldLayoutId);
                             if ($blockTypeFieldLayout) {
-                                foreach ($blockTypeFieldLayout->getFields() as $ind => $blockTypeField) {
-                                    $sides = (($ind + 1) === count($blockTypeFieldLayout->getFields()) && $lastBlockType && $lastField) ? 'lrb' : 'lr';
+                                foreach ($blockTypeFieldLayout->getCustomFields() as $ind => $blockTypeField) {
+                                    $sides = (($ind + 1) === count($blockTypeFieldLayout->getCustomFields()) && $lastBlockType && $lastField) ? 'lrb' : 'lr';
                                     $this->_generateField($blockTypeField, '&rarr; ', $sides, $config, $docElement, $labelHTML, $links, $field->handle);
                                 }
                             }
@@ -602,24 +609,9 @@ class GenerateDot extends Component
             $sides = !$config['options']['includeOnlyRelationFields'] ? $sides : 'lrb';
             $labelHTML .= '<tr><td align="left" sides="' . $sides . '" port="' . $fieldHandle . '"><font point-size="12">' . $prefix . $field->handle . '</font> <font color="#7f7f7f" point-size="10">' . $field->displayName() . '</font></td></tr>';
         } elseif (get_class($field) === Assets::class) {
-            if ($field->useSingleFolder && $field->singleUploadLocationSource) {
-                $this->_generateRelationFieldLinks($field, $field->singleUploadLocationSource, $config, $docElement, $links, $fieldParent);
-            } elseif (!$field->allowMultipleSources) {
-                $this->_generateRelationFieldLinks($field, $field->source, $config, $docElement, $links, $fieldParent);
-            } else {
-                if ($field->sources === '*') {
-                    $sources = [];
-                    foreach ($this->volumes as $volume) {
-                        $sources[] = 'volume:' . $volume->uid;
-                    }
-                } elseif ($field->sources && !is_array($field->sources)) {
-                    $sources = [$field->sources];
-                } else {
-                    $sources = $field->sources;
-                }
-                foreach ($sources as $source) {
-                    $this->_generateRelationFieldLinks($field, $source, $config, $docElement, $links, $fieldParent);
-                }
+            $sources = $field->getInputSources();
+            foreach ($sources as $source) {
+                $this->_generateRelationFieldLinks($field, $source, $config, $docElement, $links, $fieldParent);
             }
             $sides = !$config['options']['includeOnlyRelationFields'] ? $sides : 'lrb';
             $labelHTML .= '<tr><td align="left" sides="' . $sides . '" port="' . $fieldHandle . '"><font point-size="12">' . $prefix . $field->handle . '</font> <font color="#7f7f7f" point-size="10">' . $field->displayName() . '</font></td></tr>';
