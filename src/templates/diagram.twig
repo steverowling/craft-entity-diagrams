@@ -8,6 +8,9 @@
     {% set params = craft.app.request.queryParams() %}
     {% if params and (params['docGroup'] is defined) and (fileSettings['docGroups'][params['docGroup']] is defined) %}
         {% set config = fileSettings['docGroups'][params['docGroup']] %}
+        {% if params and (params['dotOptions'] is defined) %}
+            {% set dotOptions = dotOptions|merge(params['dotOptions']) %}
+        {% endif %}
         {% set dotOptions = dotOptions|merge({
             title: params['docGroup']
         }) %}
