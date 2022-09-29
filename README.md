@@ -38,7 +38,166 @@ It’s a powerful tool to get a visual overview of how a complex site is structu
 
 ## Configuring Entity Diagrams
 
--Insert text here-
+Entity Diagrams is configured by creating a config file named `entity-diagrans.php` in your Craft config folder (i.e. alongside the `general.php` and `db.php` config files).
+
+The config file should look something like this:
+
+```php
+<?php
+/**
+ * entity-diagrams.php
+ *
+ * Optional manual config to create custom groupings of sections/category groups/globals/user groups/tag groups/asset volumes/products
+ * to create entity diagrams of related parts of the system
+ */
+
+use craft\helpers\App;
+
+return [
+    'docGroups' => [ // Create predefined groups of elements to show in a diagram, 'name' => config array
+    ],
+    'options' => [ // default options, overridden by docGroups and UI
+        'includeFields' => 1,
+        'includeOnlyRelationFields' => 0,
+        'expandMatrixBlocks' => 1,
+        'includeAuthor' => 0,
+        'includeCustomNodes' => 0,
+        'includeCustomLinks' => 0,
+    ],
+    'dotOptions' => [
+        'rankDir' => 'LR',
+        'splines' => 'splines',
+        'title' => 'Site Diagram',
+    ],
+];
+```
+
+The most powerful feature of this is the ability to create pre-defined Document Groups (`docGroups`) of elements that represent a self-contained sub-section of a site. You can also use this feature to add custom nodes and links to a diagram.
+
+Document Group definitions look like this:
+
+```php
+<?php
+/**
+ * entity-diagrams.php
+ *
+ * Optional manual config to create custom groupings of sections/category groups/globals/user groups/tag groups/asset volumes/products
+ * to create entity diagrams of related parts of the system
+ */
+
+use craft\helpers\App;
+
+return [
+    'docGroups' => [ // Create predefined groups of elements to show in a diagram, 'name' => config array
+        'Group Name' => [
+            'sections' => [ // list all section handles to include
+                'news',
+                'pages',
+                'blog',
+            ],
+            'categories' => [ // list all categoryGroup handles to include
+                'newsCategories',
+                'blogCategories',
+            ],
+            'userGroups' => [ // list all userGroup handles to include
+                'contributors',
+                'editors',
+            ],
+            'globals' => [ // list all global handles to include
+                'siteSettings',
+            ],
+            'tags' => [ // list all tag group handles to include
+            ],
+            'volumes' => [ // list all asset volume handles to include
+                'newsImages',
+                'blogImages',
+            ],
+            'products' => [ // list all Commerce product type handles to include
+            ],
+            'authorMap' => [ // map userGroups to sections if entry authorship in a section is limited to by userGroup
+                'news' => ['editors'],
+                'blog' => ['editors','contributors'],
+            ],
+            'customNodes' => [ // add any custom nodes not handled automatically by Craft, e.g. custom database tables.
+            ],
+            'customLinks' => [ // add any custom links not handled automatically by Craft, e.g. linking to a matrix block id in a field. Format: "section.handle|categoryGroup.handle|userGroup.handle[:field.handle] -> section.handle|categoryGroup.handle|userGroup.handle"
+            ],
+            'options' => [
+                'includeFields' => 1,
+                'includeOnlyRelationFields' => 0,
+                'expandMatrixBlocks' => 1,
+                'includeAuthor' => 1,
+                'includeCustomNodes' => 0,
+                'includeCustomLinks' => 1,
+            ],
+        ],
+    ],
+    'options' => [ // default options, overridden by docGroups and UI
+        'includeFields' => 1,
+        'includeOnlyRelationFields' => 0,
+        'expandMatrixBlocks' => 1,
+        'includeAuthor' => 0,
+        'includeCustomNodes' => 0,
+        'includeCustomLinks' => 0,
+    ],
+    'dotOptions' => [
+        'rankDir' => 'LR',
+        'splines' => 'splines',
+        'title' => 'Site Diagram',
+    ],
+];
+```
+
+You can add as many Document Groups as you like.
+
+### Including all or no elements of a particular type
+
+If you want to include all elements of a particular type, then set the array value to `'*'`, like this:
+
+```php
+   ...
+   'sections' => '*', // include all section handles
+   ...
+```
+
+Similarly, to exclude all elements of a particular type, set the array value to an empty array, like this:
+
+```php
+   ...
+   'tags' => [], // don't include any tag groups
+   ...
+```
+
+### Custom nodes and links
+
+You can include custom nodes in a Document Group, e.g. custom database tables, etc., in an array like this:
+
+```php
+   ...
+   'customNodes' => [ // add any custom nodes not handled automatically by Craft, e.g. custom database tables.
+       [
+           'name' => 'User Progress - Tasks',
+           'handle' => 'userProgressTasks',
+           'type' => 'DATABASE TABLE',
+           'fields' => [
+               'task',
+               'user',
+               'status',
+           ],
+       ],
+   ],
+   ...
+```
+
+Similarly, custom links can be defined like this:
+
+```php
+   ...
+   'customLinks' => [ // add any custom links not handled automatically by Craft, e.g. linking to a matrix block id in a field. Format: "section.handle|categoryGroup.handle|userGroup.handle[:field.handle] -> section.handle|categoryGroup.handle|userGroup.handle"
+       'userProgressTasks:task->taskEntries',
+   ],
+   ...
+```
 
 ## Using Entity Diagrams
 
