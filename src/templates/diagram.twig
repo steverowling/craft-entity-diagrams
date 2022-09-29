@@ -22,14 +22,16 @@
         {% endif %}
         {% if params %}
             {% for element in ['sections','categories','globals','userGroups','tags','volumes','products'] %}
-                {% if params[element] == '*' %}
-                    {% set config = config|merge({
-                        (element): '*'
-                    }) %}
-                {% else %}
-                    {% set config = config|merge({
-                        (element): []
-                    }) %}
+                {% if params[element] is defined %}
+                    {% if params[element] == '*' %}
+                        {% set config = config|merge({
+                            (element): '*'
+                        }) %}
+                    {% else %}
+                        {% set config = config|merge({
+                            (element): []
+                        }) %}
+                    {% endif %}
                 {% endif %}
             {% endfor %}
         {% endif %}
