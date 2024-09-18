@@ -1,5 +1,4 @@
 {% apply spaceless %}
-    {%- import "_includes/forms" as forms -%}
     {%- do view.registerCssFile(view.getAssetManager().getPublishedUrl('@vendor/craftcms/cms/src/web/assets/cp/dist/css/cp.css')) -%}
     {% set fileSettings = craft.app.config.getConfigFromFile('entity-diagrams') %}
     {% set settings = craft.entityDiagrams.getSettings() %}
@@ -40,11 +39,11 @@
         {% endif %}
     {% endif %}
 {% endapply %}
-<html lang="en">
+<html lang="en" style="background: transparent; box-shadow: none;">
 <head>
     <title>Diagram</title>
 </head>
-<body class="ltr" style="background-color: #ffffff;">
+<body class="ltr" style="background-color: transparent; width: auto; margin: 2em; box-shadow: none;">
 
 <p><strong>Layout Options</strong></p>
 
@@ -80,21 +79,19 @@
         },
     ] %}
 
-    {{ forms.selectField({
-        handle:'engine',
-        name:'engine',
-        id: 'engine',
-        label:'Layout Engine',
-        value: '',
-        options: fieldOptions,
-    }) }}
-
+    <div class="select">
+        <select name="engine" id="engine">
+            {% for option in fieldOptions %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <button type="button" class="submit btn" id="saveSVG">
         Save SVG
     </button>
 </div>
 
-<div id="devDiagram"></div>
+<div id="devDiagram" style="margin: 2em; border: 1px solid #ccc; overflow: scroll; box-shadow: inset 0 0 4px 2px rgba(0,0,0,0.05);"></div>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js"></script>
 <script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
@@ -102,16 +99,19 @@
     (function() {
         'use strict';
 
+        let diagram = document.querySelector('#devDiagram');
         let layoutEngine = document.querySelector('#engine');
         let saveSVG = document.querySelector('#saveSVG');
         let graph = d3.select('#devDiagram').graphviz({
             tweenShapes: false,
             tweenPaths: false,
+            fit: true,
+            width: diagram.clientWidth,
+            height: 'auto',
         });
-        {#let dot = ``;#}
+
         let dot = `{{ craft.entityDiagrams.getDot(config, dotOptions)|raw }}`;
         let diagramName = dot.split('"')[1];
-        // let graph = graphviz('#devDiagram');
 
         if (layoutEngine && saveSVG) {
             graph
@@ -136,7 +136,7 @@
             });
 
             saveSVG.addEventListener('click', function(ev) {
-                let SVG = document.querySelector('#devDiagram').innerHTML;
+                let SVG = diagram.innerHTML;
 
                 let el = document.createElement('a');
                 el.setAttribute('href', 'data:text/plain;charset=utf-8,' +
