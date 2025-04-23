@@ -92,9 +92,12 @@
 </div>
 
 <div id="devDiagram" style="margin: 2em; border: 1px solid #ccc; overflow: scroll; box-shadow: inset 0 0 4px 2px rgba(0,0,0,0.05);"></div>
-<script src="https://d3js.org/d3.v5.min.js"></script>
-<script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js"></script>
-<script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>
+{#<script src="https://d3js.org/d3.v5.min.js"></script>#}
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+{#<script src="https://unpkg.com/@hpcc-js/wasm@0.3.11/dist/index.min.js"></script>#}
+<script src="https://unpkg.com/@hpcc-js/wasm/dist/graphviz.umd.js" type="application/javascript/"></script>
+{#<script src="https://unpkg.com/d3-graphviz@3.0.5/build/d3-graphviz.js"></script>#}
+<script src="https://unpkg.com/d3-graphviz@5.6.0/build/d3-graphviz.js"></script>
 <script>
     (function() {
         'use strict';
